@@ -1,0 +1,21 @@
+using PCloud
+using Documenter
+
+makedocs(;
+    modules=[PCloud],
+    authors="Andrey Oskin",
+    repo="https://github.com/Arkoniak/PCloud.jl/blob/{commit}{path}#L{line}",
+    sitename="PCloud.jl",
+    format=Documenter.HTML(;
+        prettyurls=get(ENV, "CI", "false") == "true",
+        canonical="https://Arkoniak.github.io/PCloud.jl",
+        assets=String[],
+    ),
+    pages=[
+        "Home" => "index.md",
+    ],
+)
+
+deploydocs(;
+    repo="github.com/Arkoniak/PCloud.jl",
+)
