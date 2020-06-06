@@ -5,7 +5,7 @@ using SHA
 
 include("pcloud_api.jl")
 
-export authorize!, PCloudClient
+export authorize!, PCloudClient, authtoken
 
 struct PCloudError{T} <: Exception
     msg::T
@@ -40,9 +40,44 @@ function authorize!(client::PCloudClient, user, password)
     client.cookies["auth"] = res.auth
 end
 
+function authtoken(client::PCloudClient)
+    return client.cookies["auth"]
+end
+
+pushfiles!(body, file) = push!(body, :files => file)
+function pushfiles!(body, file::Pair)
+    push!(body, :files => HTTP.Multipart(file.first, ioify(file.second)))
+end
+function pushfiles!(body, file::AbstractString)
+    push!(body, :files => open(file, "r"))
+end
+function pushfiles!(body, files::AbstractVector)
+    for file in files
+        pushfiles!(body, file)
+    end
+end
+
+ioify(elem::IO) = elem
+ioify(elem) = IOBuffer(elem)
+
 function query(client::PCloudClient, method, params)
-    uri = client.endpoint * method * "?" * HTTP.URIs.escapeuri(params)
-    res = JSON3.read(String(HTTP.get(uri, cookies = client.cookies).body))
+    response = if haskey(params, :files)
+        body = Pair[]
+        for (k, v) in params
+            k == :files && continue
+            # We need strings in multipart. Fortunately all parameters other then
+            # `files` should transform to String straightforwardly. But it is of
+            # course one of the possible source of errors.
+            push!(body, k => string(v))
+        end
+        pushfiles!(body, params[:files])
+        uri = client.endpoint * method
+        HTTP.post(uri, [], HTTP.Form(body); cookies = client.cookies)
+    else
+        uri = client.endpoint * method * "?" * HTTP.URIs.escapeuri(params)
+        HTTP.get(uri; cookies = client.cookies)
+    end
+    res = JSON3.read(String(response.body))
     if res.result == 0
         return res
     else
