@@ -11,17 +11,26 @@ struct PCloudError{T} <: Exception
     msg::T
 end
 
-struct PCloudClient
-    endpoint::String
+mutable struct PCloudClient
+    apiep::String
+    binep::String
+    rootep::String
     cookies::Dict{String, String}
 end
 
-function PCloudClient(; auth_token = "", user = "", password = "")
-    client = PCloudClient("https://api.pcloud.com/", Dict{String, String}())
+function PCloudClient(; auth_token = "", user = "", password = "", set_endpoints = true)
+    client = PCloudClient("https://api.pcloud.com/",
+                          "https://api.pcloud.com/",
+                          "https://api.pcloud.com/",
+                          Dict{String, String}())
     if !isempty(auth_token)
         authorize!(client, auth_token)
     elseif !isempty(user) & !isempty(password)
         authorize!(client, user, password)
+    end
+
+    if set_endpoints
+        update_endpoints!(client)
     end
 
     return client
@@ -42,6 +51,21 @@ end
 
 function authtoken(client::PCloudClient)
     return client.cookies["auth"]
+end
+
+function update_endpoints!(client::PCloudClient)
+    res = getapiserver(client)
+    client.apiep = "https://" * first(res.api) * "/"
+    client.binep = "https://" * first(res.binapi) * "/"
+
+    return client
+end
+
+function reset_endpoints!(client::PCloudClient)
+    client.apiep = client.rootep
+    client.binep = client.rootep
+
+    return client
 end
 
 pushfiles!(body, file) = push!(body, :files => file)
@@ -71,10 +95,10 @@ function query(client::PCloudClient, method, params)
             push!(body, k => string(v))
         end
         pushfiles!(body, params[:files])
-        uri = client.endpoint * method
+    uri = client.apiep * method
         HTTP.post(uri, [], HTTP.Form(body); cookies = client.cookies)
     else
-        uri = client.endpoint * method * "?" * HTTP.URIs.escapeuri(params)
+    uri = client.apiep * method * "?" * HTTP.URIs.escapeuri(params)
         HTTP.get(uri; cookies = client.cookies)
     end
     res = JSON3.read(String(response.body))
@@ -92,32 +116,5 @@ for (f, fdoc) in PCLOUD_API
         export $f
     end
 end
-# for method in [ # General https://docs.pcloud.com/methods/general/
-#                :getdigest, :userinfo, :supportedlanguages,
-#                :setlanguage, :feedback, :currentserver,
-#                :diff, :getfilehistory, :getip, :getapiserver,
-
-#                 # Folder https://docs.pcloud.com/methods/folder/
-#                :createfolder, :createfolderifnotexists, :listfolder,
-#                :renamefolder, :deletefolder, :deletefolderrecursive,
-#                :copyfolder,
-
-#                 # Auth https://docs.pcloud.com/methods/auth/
-#                :sendverificationemail, :verifyemail, :changepassword,
-#                :lostpassword, :resetpassword, :register, :invite,
-#                :userinvites, :logout, :listtokens, :deletetoken,
-#                :sendchangemail, :changemail, :senddeactivatemail,
-#                :deactivateuser,
-
-#                 # Newsletter https://docs.pcloud.com/methods/newsletter/
-#                :newsletter_subscribe, :newsletter_check, :newsletter_verifyemail,
-#                :newsletter_unsubscribe, :newsletter_unsibscribemail,
-
-#                 # Trash https://docs.pcloud.com/methods/trash/
-#                :trash_list, :trash_restorepath, :trash_restore, :trash_clear
-#               ]
-#     @eval $method(client::PCloudClient; kwargs...) = query(client, String(Symbol($method)), Dict(kwargs))
-#     @eval export $method
-# end
 
 end # module
