@@ -13,7 +13,7 @@ const TYPESCONVERT = Dict("string" => "String",
                           "event" => "event"
                          )
 
-const SPECIAL_METHODS = Dict("diff" => "pcloud_diff")
+const SPECIAL_METHODS = Dict("diff" => "pcloud_diff", "stat" => "pcloud_stat")
 
 const endpoint_url = "https://docs.pcloud.com"
 
@@ -22,6 +22,7 @@ pageparser(x) = parsehtml(String(x)).root
 function process_name(c)
     name = strip(nodeText(c))
     name = get(SPECIAL_METHODS, name, name)
+    name = replace(name, r"\.$" => "")
     (name, "\t"*name*"(client::PCloudClient; kwargs...)")
 end
 
@@ -116,6 +117,7 @@ end
 function process_optional(c)
     docstring = "# Optional Arguments\n"
     docstring *= roll_description(c)
+    docstring = replace(docstring, "[\\i]" => "")
 
     return docstring
 end
@@ -184,8 +186,8 @@ function getseeds()
     
     page = urldownload(seed_url, parser = pageparser)
     seeds = @_ matchFirst(sel"div.api-column", page) |> eachmatch(sel"a", __) |>
-        map((nodeText(_) => endpoint_url * _.attributes["href"]), __) |> Dict
-    seeds = filter(p -> !(p[1] in ["Intro"]), seeds)
+        map((nodeText(_) => endpoint_url * _.attributes["href"]), __)
+    seeds = filter(p -> !(p.first in ["Intro"]), seeds)
 
     return seeds
 end
@@ -193,31 +195,87 @@ end
 function get_urls(topic_url)
     page = urldownload(topic_url, parser = pageparser)
 
-    res = @_ matchFirst(sel"div.api-column", page) |> eachmatch(sel"li", __) |> matchFirst.(Ref(sel"a"), __) |> map(nodeText(_) => endpoint_url*_.attributes["href"], __) |> Dict
+    res = @_ matchFirst(sel"div.api-column", page) |> eachmatch(sel"li", __) |> matchFirst.(Ref(sel"a"), __) |> map(nodeText(_) => endpoint_url*_.attributes["href"], __)
     
     return res
 end
 
-function create_methods()
+function extract_docs()
     seeds = getseeds()
+    res = []
+    for (seed_name, seed_url) in seeds
+        topic = (seed_name => [])
+        @info "================================"
+        @info "Processing topic: " * seed_name
+        @info "================================"
+        urls = get_urls(seed_url)
+        for (method, url) in urls
+            @info "Processing " * method
+            docpage = urldownload(url, parser = pageparser)
+            docs = matchFirst(sel"div.dev-content", docpage)
+            dl = matchFirst(sel"dl", docpage)
+
+            name, docstring = dl2doc(dl, url)
+            push!(topic.second, (method = method, url = url, name = name, docstring = docstring))
+        end
+        push!(res, topic)
+    end
+
+    return res
+end
+
+# function create_methods()
+#     seeds = getseeds()
+#     open("pcloud_api.jl", "w") do f
+#         write(f, "const PCLOUD_API = [\n")
+#         for (seed_name, seed_url) in seeds
+#             @info "================================"
+#             @info "Processing topic: " * seed_name
+#             @info "================================"
+#             urls = get_urls(seed_url)
+#             for (method, url) in urls
+#                 @info "Processing " * method
+#                 docpage = urldownload(url, parser = pageparser)
+#                 docs = matchFirst(sel"div.dev-content", docpage)
+#                 dl = matchFirst(sel"dl", docpage)
+
+#                 name, docstring = dl2doc(dl, url)
+#                 write(f, "(:" * String(name) * ", \"\"\"\n" * docstring * "\n\"\"\"),\n")
+#             end
+#         end
+#         write(f, "]")
+#     end
+# end
+
+function build_methods(docs)
     open("pcloud_api.jl", "w") do f
         write(f, "const PCLOUD_API = [\n")
-        for (seed_name, seed_url) in seeds
-            @info "================================"
-            @info "Processing topic: " * seed_name
-            @info "================================"
-            urls = get_urls(seed_url)
-            for (method, url) in urls
-                @info "Processing " * method
-                docpage = urldownload(url, parser = pageparser)
-                docs = matchFirst(sel"div.dev-content", docpage)
-                dl = matchFirst(sel"dl", docpage)
-
-                name, docstring = dl2doc(dl, url)
-                write(f, "(:" * String(name) * ", \"\"\"\n" * docstring * "\n\"\"\"),\n")
+        for (topic_name, methods) in docs
+            for method in methods
+                write(f, "(:" * String(method.name) * ", \"\"\"\n" * method.docstring * "\n\"\"\"),\n")
             end
         end
         write(f, "]")
     end
 end
 
+function build_reference(docs)
+    open("reference.md", "w") do f
+        for (topic_name, methods) in docs
+            write(f, "## " * topic_name * "\n\n")
+            index = String[]
+            methodsdocs = String[]
+            for method in methods
+                push!(index, "* [`PCloud." * String(method.name) * "`](@ref)")
+                mdoc = "**API documentation source**: [" * method.url * "](" * method.url * ")\n"
+                mdoc *= "```@docs\n" * String(method.name) * "\n```\n"
+                push!(methodsdocs, mdoc)
+            end
+            indexdoc = join(index, "\n")
+            methodsdoc = join(methodsdocs, "\n")
+            write(f, indexdoc) 
+            write(f, "\n\n")
+            write(f, methodsdoc)
+        end
+    end
+end
