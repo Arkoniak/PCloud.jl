@@ -5,7 +5,7 @@ using SHA
 
 include("pcloud_api.jl")
 
-export authorize!, PCloudClient, authtoken
+export authorize!, PCloudClient, authtoken, update_endpoints!, reset_endpoints!
 
 struct PCloudError{T} <: Exception
     msg::T
