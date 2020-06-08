@@ -83,6 +83,10 @@ end
 
 ioify(elem::IO) = elem
 ioify(elem) = IOBuffer(elem)
+function ioify(elem::IOBuffer)
+    seekstart(elem)
+    return elem
+end
 
 function query(client::PCloudClient, method, params)
     response = if haskey(params, :files)
@@ -113,7 +117,6 @@ for (f, fdoc) in PCLOUD_API
     @eval begin
         $f(client::PCloudClient; kwargs...) = query(client, String(Symbol($f)), Dict(kwargs))
         @doc $fdoc $f
-        export $f
     end
 end
 
