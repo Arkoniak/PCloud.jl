@@ -1,6 +1,10 @@
-# Examples of usage
+```@meta
+CurrentModule = PCloud
+```
 
-Here I collected different snippets, which can help in building fast and simple data pipelines with the usage of `PCloud.jl`. These snippets are not the best possible ways to solve problems, but they can be used as a starting point and also I've tried to show, how to apply various Julia techniques such as broadcasting and anonymous functions together with `pCloud` to achieve goals without to much efforts.
+# Usage examples
+
+Here you can find different snippets which can help in building fast and simple data pipelines with the usage of [PCloud.jl](https://github.com/Arkoniak/PCloud.jl). These snippets are not the best possible ways to solve problems, but they can be used as a starting point. Also they illustrate ways how to apply various Julia techniques such as broadcasting and anonymous functions together with `pCloud` to achieve goals without too much efforts.
 
 ## Uploading and downloading CSV
 CSV is rather common format for storing data, and [CSV.jl](https://github.com/JuliaData/CSV.jl) provides convenient function `CSV.write` which can store data in `IOBuffer` which in turn can be uploaded to `pCloud`.
@@ -28,7 +32,7 @@ df = DataFrame(x = rand(10), y = rand(1:10, 10), z = [randstring(5) for _ in 1:1
 # │ 10  │ 0.40273   │ 10    │ PQs14  │
 ```
 
-To store this dataframe in `pCloud` we write it's contents to `IOBuffer` and upload resulting buffer to `pCloud` with the help of `uploadfile` function
+To store this dataframe in `pCloud` we write it's contents to `IOBuffer` and upload resulting buffer to `pCloud` with the help of [`uploadfile`](@ref) function
 ```julia
 using PCloud
 using PCloud: uploadfile, getfilelink
@@ -40,7 +44,7 @@ buffer = CSV.write(IOBuffer, df)
 res = uploadfile(client, files = "data.csv" => buf)
 ```
 
-Returned reponse `res` contains necessary information about resulting file. And to get it back we can use `getfilelink`
+Returned reponse `res` contains necessary information about resulting file. And to get it back we can use [`getfilelink`](@ref)
 
 ```julia
 using UrlDownload
@@ -66,7 +70,7 @@ df2 = @_ getfilelink(client, fileid = first(res.fileids)) |>
 
 ### Working with comressed CSV
 
-Since csv can be rather large it's a common practice to compress it before uploading. It can be done as follows (assuming the same `df` from the previous example)
+Since csv files can be rather large it is a common practice to compress them before uploading. It can be done as follows (assuming the same `df` from the previous example)
 
 ```julia
 using CodecZlib
@@ -75,7 +79,7 @@ buf = CSV.write(IOBuffer(), df) |> seekstart |> GzipCompressorStream
 res = uploadfile(client, files = "data.csv.gz" => buf)
 ```
 
-Note that we should use `seekstart` here, since after `IOBuffer` is written, it's pointer located at the end and subsequent reading of the buffer in `uploadfile` return empty array. Also, in this exampe we used `GzipCompressorStream`, but any other compressing algorithm can be used, refer [TranscodingStreams.jl](https://github.com/JuliaIO/TranscodingStreams.jl#codec-packages).
+Note that we should use `seekstart` here, since after `IOBuffer` is written, it's pointer located at the end and subsequent reading of the buffer in [`uploadfile`](@ref) return empty array. Also, in this exampe we used `GzipCompressorStream`, but any other compressing algorithm can be used, refer [TranscodingStreams.jl](https://github.com/JuliaIO/TranscodingStreams.jl#codec-packages).
 
 And to verify the result of upload
 
@@ -103,7 +107,7 @@ df2 = @_ getfilelink(client, fileid = first(res.fileids)) |>
 
 ## Uploading generated image
 
-In this example we will use [Luxor.jl](https://github.com/JuliaGraphics/Luxor.jl) for image generation and also use `getfilepublink` to generate public link to the resulting image.
+In this example we will use [Luxor.jl](https://github.com/JuliaGraphics/Luxor.jl) for image generation and also use [`getfilepublink`](@ref) to generate public link to the resulting image.
 
 ```julia
 using Luxor

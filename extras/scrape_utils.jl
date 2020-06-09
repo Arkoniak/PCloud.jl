@@ -262,10 +262,19 @@ function build_methods(docs, dev = false)
     end
 end
 
+const REFERENCE_PREAMBULE = """
+```@meta
+CurrentModule = PCloud
+```
+
+# Reference API
+"""
+
 function build_reference(docs, dev = false)
     filepath = dev ? "reference.md" : joinpath(@__DIR__, "..", "docs", "src", "reference.md")
 
     open(filepath, "w") do f
+        write(f, REFERENCE_PREAMBULE)
         for (topic_name, methods) in docs
             write(f, "## " * topic_name * "\n\n")
             index = String[]
