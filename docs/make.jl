@@ -9,6 +9,7 @@ makedocs(;
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://Arkoniak.github.io/PCloud.jl",
+        siteurl="https://github.com/Arkoniak/PCloud.jl",
         assets=String[],
     ),
     pages=[
