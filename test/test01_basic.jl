@@ -32,7 +32,7 @@ end
 @testset "client authentication" begin
     @test_throws PCloud.PCloudError PCloudClient(user = "nouser", password = "nopassword")
     pcloud = PCloudClient(auth_token = "notoken")
-    @test_throws PCloud.PCloudError userinfo(pcloud)
+    @test_throws PCloud.PCloudError PCloud.userinfo(pcloud)
 end
 
 end # module
