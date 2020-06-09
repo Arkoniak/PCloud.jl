@@ -5,7 +5,7 @@ using Test
 @testset "client creation" begin
     pcloud = PCloudClient()
 
-    res = getdigest(pcloud)
+    res = PCloud.getdigest(pcloud)
     @test res.result == 0
 end
 
@@ -17,7 +17,7 @@ end
     @test pcloud.binep == pcloudapi
     @test pcloud.rootep == pcloudapi
 
-    res = getapiserver(pcloud)
+    res = PCloud.getapiserver(pcloud)
     update_endpoints!(pcloud)
     @test pcloud.apiep == "https://" * first(res.api) * "/"
     @test pcloud.binep == "https://" * first(res.binapi) * "/"
