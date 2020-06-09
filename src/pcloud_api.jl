@@ -151,8 +151,8 @@ Source: https://docs.pcloud.com/methods/general/currentserver.html
 }
 ```
 """),
-(:pcloud_diff, """
-	pcloud_diff(client::PCloudClient; kwargs...)
+(:diff, """
+	diff(client::PCloudClient; kwargs...)
 
 List updates of the user's folders/files.
 
@@ -1170,8 +1170,8 @@ On success returns renamed file's `metadata` with `deletedfileid` if merged file
 }
 ```
 """),
-(:pcloud_stat, """
-	pcloud_stat(client::PCloudClient; kwargs...)
+(:stat, """
+	stat(client::PCloudClient; kwargs...)
 
 The `stat` API method returns information about the file pointed to by `fileid` or `path`. It's is recomended to use `fileid`.
 

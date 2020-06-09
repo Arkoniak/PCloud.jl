@@ -6,7 +6,7 @@
 * [`PCloud.setlanguage`](@ref)
 * [`PCloud.feedback`](@ref)
 * [`PCloud.currentserver`](@ref)
-* [`PCloud.pcloud_diff`](@ref)
+* [`PCloud.diff`](@ref)
 * [`PCloud.getfilehistory`](@ref)
 * [`PCloud.getip`](@ref)
 * [`PCloud.getapiserver`](@ref)
@@ -43,7 +43,7 @@ currentserver
 
 **API documentation source**: [https://docs.pcloud.com/methods/general/diff.html](https://docs.pcloud.com/methods/general/diff.html)
 ```@docs
-pcloud_diff
+diff
 ```
 
 **API documentation source**: [https://docs.pcloud.com/methods/general/getfilehistory.html](https://docs.pcloud.com/methods/general/getfilehistory.html)
@@ -114,7 +114,7 @@ copyfolder
 * [`PCloud.checksumfile`](@ref)
 * [`PCloud.deletefile`](@ref)
 * [`PCloud.renamefile`](@ref)
-* [`PCloud.pcloud_stat`](@ref)
+* [`PCloud.stat`](@ref)
 
 **API documentation source**: [https://docs.pcloud.com/methods/file/uploadfile.html](https://docs.pcloud.com/methods/file/uploadfile.html)
 ```@docs
@@ -158,7 +158,7 @@ renamefile
 
 **API documentation source**: [https://docs.pcloud.com/methods/file/stat.html](https://docs.pcloud.com/methods/file/stat.html)
 ```@docs
-pcloud_stat
+stat
 ```
 ## Auth
 
