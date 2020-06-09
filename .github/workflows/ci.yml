@@ -55,6 +55,7 @@ jobs:
           julia --project=docs -e '
             using Pkg;
             Pkg.develop(PackageSpec(path=pwd()));
+            Pkg.develop("https://github.com/Arkoniak/Documenter.jl.git#repo_url");
             Pkg.instantiate();'
       - run: julia --project=docs docs/make.jl
         env:
