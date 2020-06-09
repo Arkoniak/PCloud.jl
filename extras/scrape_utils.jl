@@ -13,7 +13,8 @@ const TYPESCONVERT = Dict("string" => "String",
                           "event" => "event"
                          )
 
-const SPECIAL_METHODS = Dict("diff" => "pcloud_diff", "stat" => "pcloud_stat")
+# const SPECIAL_METHODS = Dict("diff" => "pcloud_diff", "stat" => "pcloud_stat")
+const SPECIAL_METHODS = Dict()
 
 const endpoint_url = "https://docs.pcloud.com"
 
@@ -135,7 +136,7 @@ function dl2doc(node, url)
     prev = ""
     docstrings = Dict{String, String}()
     name = ""
-    sections = ("Name", "Auth", "Description", "URL", "Required", "Optional", "Output", "Example")
+    sections = ("Name", "Auth", "Description", "URL", "Required", "Optional", "Output", "Example", "Errors")
     for c in node.children
         if tag(c) == :dt
             prev = nodeText(c)
@@ -247,8 +248,10 @@ end
 #     end
 # end
 
-function build_methods(docs)
-    open("pcloud_api.jl", "w") do f
+function build_methods(docs, dev = false)
+    filepath = dev ? "pcloud_api.jl" : joinpath(@__DIR__, "..", "src", "pcloud_api.jl")
+
+    open(filepath, "w") do f
         write(f, "const PCLOUD_API = [\n")
         for (topic_name, methods) in docs
             for method in methods
@@ -259,8 +262,10 @@ function build_methods(docs)
     end
 end
 
-function build_reference(docs)
-    open("reference.md", "w") do f
+function build_reference(docs, dev = false)
+    filepath = dev ? "reference.md" : joinpath(@__DIR__, "..", "docs", "src", "reference.md")
+
+    open(filepath, "w") do f
         for (topic_name, methods) in docs
             write(f, "## " * topic_name * "\n\n")
             index = String[]
