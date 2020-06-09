@@ -15,7 +15,7 @@ makedocs(;
         "Home" => "index.md",
         "Reference API" => "reference.md",
         "Usage examples" => "examples.md",
-        "Deveopers guide" => "developers.md"
+        "Developer guide" => "developers.md"
     ],
 )
 

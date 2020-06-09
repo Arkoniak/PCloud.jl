@@ -1,3 +1,8 @@
+```@meta
+CurrentModule = PCloud
+```
+
+# Reference API
 ## General
 
 * [`PCloud.getdigest`](@ref)
