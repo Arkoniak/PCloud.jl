@@ -11,6 +11,7 @@ struct CommonNode
     id::String
     parentfolderid::Int
     comments::String
+    metadata::NamedTuple
 end
 
 struct CommonFile
@@ -39,7 +40,7 @@ struct Document <: File
     g::CommonNode
 end
 
-struct Image <: FSNode
+struct Image <: File
     f::CommonFile
     g::CommonNode
     width::Int
@@ -47,19 +48,19 @@ struct Image <: FSNode
 end
 
 # TODO: Add necessary fields
-struct Video <: FSNode
+struct Video <: File
     f::CommonFile
     g::CommonNode
 end
 
 # TODO: Add necessary fields
-struct Audio <: FSNode
+struct Audio <: File
     f::CommonFile
     g::CommonNode
 end
 
 # TODO: Add necessary fields
-struct Archive <: FSNode
+struct Archive <: File
     f::CommonFile
     g::CommonNode
 end
@@ -73,6 +74,7 @@ isshared(x::FSNode) = x.g.isshared
 id(x::FSNode) = x.g.id
 parentfolderid(x::FSNode) = x.g.parentfolderid
 comments(x::FSNode) = x.g.comments
+metadata(x::FSNode) = x.g.metadata
 
 folderid(x::Folder) = x.folderid
 
@@ -86,6 +88,13 @@ icon(x::File) = x.f.icon
 isfolder(x::Folder) = true
 isfolder(x::File) = false
 
+catname(x::Plain) = "Uncategorized"
+catname(x::Image) = "Image"
+catname(x::Video) = "Video"
+catname(x::Audio) = "Audio"
+catname(x::Document) = "Document"
+catname(x::Archive) = "Archive"
+
 Base.:length(x::Folder) = length(x.contents)
 Base.:iterate(x::Folder) = iterate(x.contents)
 Base.:iterate(x::Folder, i::Int) = iterate(x.contents, i)
@@ -94,7 +103,13 @@ function CommonNode(x)
     properties = propertynames(x)
     parentfolderid = :parentfolfolderid in properties ? x.parentfolderid : -1
     comments = :comments in properties ? string(x.comments) : ""
-    CommonNode(x.name, x.created, x.modified, x.thumb, x.ismine, x.isshared, x.id, parentfolderid, comments)
+    y = []
+    for property in propertynames(x)
+        property == :contents && continue
+        push!(y, property => getproperty(x, property))
+    end
+    metadata = (; y...)
+    CommonNode(x.name, x.created, x.modified, x.thumb, x.ismine, x.isshared, x.id, parentfolderid, comments, metadata)
 end
 
 function CommonFile(x)
@@ -149,4 +164,13 @@ children(x::Folder) = x.contents
 children(x::File) = ()
 
 printnode(io::IO, x::Folder) = print(io, folderid(x), ": " * name(x) * "/")
-printnode(io::IO, x::File) = print(io, fileid(x), ": " * name(x))
+printnode(io::IO, x::File) = print(io, fileid(x), " (", catname(x), ")", ": ", name(x))
+
+function gettree(client::PCloudClient = OPTS.client; params...)
+    if !haskey(params, :folderid)
+        params = (; params..., :folderid => 0)
+    end
+    
+    dir = API.listfolder(client; params...)
+    return FSNode(dir.metadata)
+end

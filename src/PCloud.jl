@@ -5,6 +5,11 @@ using SHA
 using AbstractTrees
 import AbstractTrees: children, printnode
 
+export authorize!, PCloudClient, authtoken, update_endpoints!, reset_endpoints!, useglobally!
+
+# Filesystem tree specific functions
+export gettree, fileid, folderid, name, metadata
+
 mutable struct PCloudClient
     apiep::String
     binep::String
@@ -25,6 +30,5 @@ const OPTS = PCloudOpts(PCloudClient(set_endpoints = false))
 
 include("fs.jl")
 
-export authorize!, PCloudClient, authtoken, update_endpoints!, reset_endpoints!, useglobally!
 
 end # module
