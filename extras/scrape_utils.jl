@@ -267,7 +267,7 @@ const REFERENCE_PREAMBULE = """
 CurrentModule = PCloud
 ```
 
-# Reference API
+# API Reference
 """
 
 function build_reference(docs, dev = false)

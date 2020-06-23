@@ -2,7 +2,7 @@
 CurrentModule = PCloud
 ```
 
-# Reference API
+# API Reference
 ## General
 
 * [`PCloud.getdigest`](@ref)

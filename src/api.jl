@@ -41,7 +41,7 @@ function query(client::PCloud.PCloudClient, method, params)
         HTTP.post(uri, ["Connection" => "Keep-Alive"], HTTP.Form(body); cookies = client.cookies)
     else
     uri = client.apiep * method * "?" * HTTP.URIs.escapeuri(params)
-        HTTP.get(uri; cookies = client.cookies)
+        HTTP.get(uri, ["Connection" => "Keep-Alive"]; cookies = client.cookies)
     end
     res = JSON3.read(String(response.body))
     if res.result == 0

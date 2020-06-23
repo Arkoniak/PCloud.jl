@@ -16,4 +16,4 @@ sh> julia make.jl
 ```
 command. It will create two files:
 * `src/pcloud_api.jl` which contains all methods names and corresponding docstrings
-* `docs/src/reference.md` which contains complete [Reference API](@ref) page.
+* `docs/src/reference.md` which contains complete [API Reference](@ref) page.
