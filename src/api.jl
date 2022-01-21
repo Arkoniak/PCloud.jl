@@ -47,7 +47,7 @@ function query(client::PCloud.PCloudClient, method, params)
     if res.result == 0
         return res
     else
-        throw(PCloudError(res))
+        throw(PCloud.PCloudError(res))
     end
 end
 

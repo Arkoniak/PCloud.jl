@@ -5,7 +5,7 @@ using SHA
 using AbstractTrees
 import AbstractTrees: children, printnode
 
-export authorize!, PCloudClient, authtoken, update_endpoints!, reset_endpoints!, useglobally!
+export authorize!, PCloudClient, authtoken, update_endpoints!, reset_endpoints!, useglobally!, search, gettree!
 
 # Filesystem tree specific functions
 export gettree, fileid, folderid, name, metadata
