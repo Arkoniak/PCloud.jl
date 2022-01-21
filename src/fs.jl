@@ -174,3 +174,35 @@ function gettree(client::PCloudClient = OPTS.client; params...)
     dir = API.listfolder(client; params...)
     return FSNode(dir.metadata)
 end
+
+function gettree!(client::PCloudClient, node::Folder; params...)
+    dir = API.listfolder(client; :folderid => folderid(node), params...)
+    empty!(node.contents)
+    if haskey(dir.metadata, :contents)
+        for x in dir.metadata.contents
+            push!(node.contents, FSNode(x))
+        end
+    end
+
+    return
+end
+
+gettree!(client::PCloudClient, node::File; params...) = nothing
+
+gettree!(nodes::AbstractVector; params...) = gettree!(OPTS.client, nodes; params...)
+function gettree!(client::PCloudClient, nodes::AbstractVector; params...)
+    for node in nodes
+        gettree!(client, node; params...)
+    end
+
+    return
+end
+
+function search(f, x::FSNode)
+    res = FSNode[]
+    for node in PreOrderDFS(x)
+        f(node) && push!(res, node)
+    end
+
+    return res
+end
